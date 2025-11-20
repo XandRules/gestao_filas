@@ -82,14 +82,14 @@ export class RegisterComponent {
     }
   }
 
-  submit() {
+  async submit() {
     this.erro = '';
     this.ok = '' as any;
 
     if (!this.nomeCompleto?.trim()) { this.erro = 'Informe o nome completo.'; return; }
     if (!this.usuario?.trim()) { this.erro = 'Informe o usuário.'; return; }
 
-    const res = this.auth.register({ nomeCompleto: this.nomeCompleto, nome: this.usuario, senha: this.senha, tipo: this.tipo as ProfessionalType, unidadeId: this.unidadeId });
+    const res = await this.auth.register({ nomeCompleto: this.nomeCompleto, nome: this.usuario, senha: this.senha, tipo: this.tipo as ProfessionalType, unidadeId: this.unidadeId });
     if (!res.ok) { this.erro = res.message || 'Erro ao cadastrar.'; return; }
     this.ok = 'ok';
   }

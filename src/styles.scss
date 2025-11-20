@@ -101,3 +101,8 @@ body {
 }
 .service-btn:hover { filter: brightness(1.05); }
 .service-btn__icon { display: inline-flex; align-items: center; margin-right: 8px; }
+
+/* Inputs maiores (altura aumentada) */
+.field-xl .mat-mdc-form-field-infix { min-height: 64px; padding-top: 12px; padding-bottom: 12px; }
+.field-xl .mat-mdc-input-element { height: 28px; }
+.field-xl textarea.mat-mdc-input-element { min-height: 120px; }

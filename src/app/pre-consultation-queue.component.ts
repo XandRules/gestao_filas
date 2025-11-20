@@ -18,7 +18,7 @@ const MONITOR_KEY = 'bemAtendeMonitorCurrent';
     <mat-card class="smart-card max-w-4xl mx-auto">
       <mat-card-header>
         <mat-card-title>Fila de Pré-Consulta</mat-card-title>
-        <div class="ml-auto text-sm text-slate-600">Total: {{ total() }} · Urgentes: {{ urgentes() }}</div>
+        <div class="ml-auto text-sm text-slate-600">Aguardando: {{ aguardandoTotal() }} · Atendidos: {{ atendidosTotal() }}</div>
       </mat-card-header>
       <mat-card-content>
         <div class="flex justify-end mb-3">
@@ -27,8 +27,10 @@ const MONITOR_KEY = 'bemAtendeMonitorCurrent';
             <mat-button-toggle value="urg">Urgentes primeiro</mat-button-toggle>
           </mat-button-toggle-group>
         </div>
-        @if (list().length === 0) { <p>Nenhum paciente aguardando.</p> }
-        @for (p of list(); track p.id) {
+
+        <h3 class="text-slate-700 font-semibold mb-2">Aguardando</h3>
+        @if (aguardando().length === 0) { <p>Nenhum paciente aguardando.</p> }
+        @for (p of aguardando(); track p.id) {
           <div class="flex items-center justify-between py-2 border-b border-slate-200">
             <div>
               <strong>{{ p.nome }}</strong>
@@ -41,6 +43,20 @@ const MONITOR_KEY = 'bemAtendeMonitorCurrent';
             </div>
           </div>
         }
+
+        <h3 class="text-slate-700 font-semibold mt-6 mb-2">Atendidos</h3>
+        @if (atendidos().length === 0) { <p>Nenhum paciente atendido na pré-consulta.</p> }
+        @for (p of atendidos(); track p.id) {
+          <div class="flex items-center justify-between py-2 border-b border-slate-200">
+            <div>
+              <strong>{{ p.nome }}</strong>
+              <span class="ml-2 text-xs text-slate-600">{{ p.classificacao === 'urgente' ? 'URGENTE' : 'NORMAL' }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700">Pré-consulta finalizada</span>
+            </div>
+          </div>
+        }
       </mat-card-content>
     </mat-card>
   `,
@@ -49,18 +65,25 @@ export class PreConsultationQueueComponent {
   private refresh = signal(0);
   constructor(private readonly queue: PreConsultaQueueService, private readonly auth: AuthService, private readonly medical: MedicalQueueService) {}
 
-  list = computed(() => {
+  aguardando = computed(() => {
     const unidadeId = this.auth.user()?.unidadeId;
     const data = this.queue.queue()
       .filter(p => p.status === 'pre_consulta' && (!unidadeId || p.unidadeId === unidadeId));
     return this.urgentFirst() ? [...data].sort((a,b) => (b.classificacao === 'urgente' ? 1 : 0) - (a.classificacao === 'urgente' ? 1 : 0) || a.createdAt - b.createdAt) : data.sort((a,b) => a.createdAt - b.createdAt);
   });
+
+  atendidos = computed(() => {
+    const unidadeId = this.auth.user()?.unidadeId;
+    return this.queue.queue()
+      .filter(p => p.status === 'finalizado' && (!unidadeId || p.unidadeId === unidadeId))
+      .sort((a,b) => b.createdAt - a.createdAt);
+  });
   
   urgentFirst = signal(false);
   setOrder(val: any) { this.urgentFirst.set(val === 'urg'); this.refresh.set(this.refresh() + 1); }
   
-  total = computed(() => this.list().length);
-  urgentes = computed(() => this.list().filter(p => p.classificacao === 'urgente').length);
+  aguardandoTotal = computed(() => this.aguardando().length);
+  atendidosTotal = computed(() => this.atendidos().length);
   private beep() {
     try {
       const ctx = new (window as any).AudioContext();
@@ -75,23 +98,26 @@ export class PreConsultationQueueComponent {
     } catch {}
   }
 
-  chamar(p: Paciente) {
+  async chamar(p: Paciente) {
     const mesa = prompt('Informe o Guichê/Mesa (ex.: Triagem 1, Guichê 3)')?.trim() || 'Triagem';
     const senha = prompt('Informe a SENHA (ex.: N015, C007)')?.trim();
-    const payload = { nome: p.nome, classificacao: p.classificacao, unidadeId: p.unidadeId, local: mesa, fila: 'Pré-Consulta', senha, calledAt: Date.now() };
-    localStorage.setItem(MONITOR_KEY, JSON.stringify(payload));
+    const payload = { nome: p.nome, classificacao: p.classificacao, unidadeId: p.unidadeId as any, local: mesa, fila: 'Pré-Consulta', senha, calledAt: Date.now() };
+    try {
+      await fetch('http://localhost:4303/monitor/current', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      await fetch('http://localhost:4303/monitor/history', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    } catch {}
     this.beep();
   }
 
-  iniciar(p: Paciente) {
-    this.queue.updateStatus(p.id, 'atendimento');
+  async iniciar(p: Paciente) {
+    await this.queue.updateStatus(p.id, 'atendimento');
     this.refresh.set(this.refresh() + 1);
   }
 
-  finalizar(p: Paciente) {
-    // move para fila médica e remove da pré-consulta
-    this.medical.add({ ...p, status: 'atendimento' });
-    this.queue.removeById(p.id);
+  async finalizar(p: Paciente) {
+    // mantém histórico como finalizado na pré-consulta e adiciona na fila médica
+    await this.queue.updateStatus(p.id, 'finalizado');
+    await this.medical.add({ ...p, status: 'atendimento' });
     this.refresh.set(this.refresh() + 1);
   }
 }

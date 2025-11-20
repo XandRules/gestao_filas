@@ -1,48 +1,63 @@
 import { Injectable } from '@angular/core';
 import { Paciente } from './patient.model';
 
-const STORAGE_KEY = 'preConsultaQueue';
-
 @Injectable({ providedIn: 'root' })
 export class PreConsultaQueueService {
   private _queue: Paciente[] = [];
+  private readonly baseUrl = 'http://localhost:4303';
+  private readonly resource = 'preConsultaQueue';
 
   constructor() {
-    this._queue = this.read();
+    this.refresh();
   }
 
-  private read(): Paciente[] {
+  async refresh(): Promise<void> {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) as Paciente[] : [];
+      const res = await fetch(`${this.baseUrl}/${this.resource}`);
+      const data = await res.json();
+      this._queue = Array.isArray(data) ? data : [];
     } catch {
-      return [];
+      this._queue = [];
     }
-  }
-
-  private persist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._queue));
   }
 
   queue(): Paciente[] { return [...this._queue]; }
 
-  add(p: Paciente) {
-    this._queue.push(p);
-    this.persist();
+  async add(p: Paciente): Promise<void> {
+    try {
+      const res = await fetch(`${this.baseUrl}/${this.resource}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p),
+      });
+      const created = await res.json();
+      this._queue = [...this._queue, created];
+    } catch {}
   }
 
-  updateStatus(id: string, status: Paciente['status']) {
-    const idx = this._queue.findIndex(x => x.id === id);
-    if (idx >= 0) {
-      this._queue[idx] = { ...this._queue[idx], status };
-      this.persist();
+  async updateStatus(id: string, status: Paciente['status']): Promise<void> {
+    try {
+      await fetch(`${this.baseUrl}/${this.resource}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      this._queue = this._queue.map(x => x.id === id ? { ...x, status } : x);
+    } catch {}
+  }
+
+  async removeById(id: string): Promise<void> {
+    try {
+      await fetch(`${this.baseUrl}/${this.resource}/${id}`, { method: 'DELETE' });
+      this._queue = this._queue.filter(x => x.id !== id);
+    } catch {}
+  }
+
+  async clear(): Promise<void> {
+    const ids = this._queue.map(x => x.id);
+    for (const id of ids) {
+      try { await fetch(`${this.baseUrl}/${this.resource}/${id}`, { method: 'DELETE' }); } catch {}
     }
+    this._queue = [];
   }
-
-  removeById(id: string) {
-    this._queue = this._queue.filter(x => x.id !== id);
-    this.persist();
-  }
-
-  clear() { this._queue = []; this.persist(); }
 }

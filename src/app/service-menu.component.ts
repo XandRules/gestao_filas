@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { PatientRegistrationComponent } from './patient-registration.component';
@@ -56,43 +56,44 @@ import { AuthService } from './auth.service';
       @if (selected === 'cadastro') {
         <app-patient-registration></app-patient-registration>
         <div class="flex justify-end mt-3">
-          <button mat-raised-button class="!bg-slate-500 !text-white" (click)="selected = ''">Voltar</button>
+          <button mat-raised-button class="!bg-slate-500 !text-white" (click)="selected = ''; selectedChange.emit('')">Voltar</button>
         </div>
       }
 
       @if (selected === 'pre_consulta') {
         <app-pre-consultation-queue></app-pre-consultation-queue>
         <div class="flex justify-end mt-3">
-          <button mat-raised-button class="!bg-slate-500 !text-white" (click)="selected = ''">Voltar</button>
+          <button mat-raised-button class="!bg-slate-500 !text-white" (click)="selected = ''; selectedChange.emit('')">Voltar</button>
         </div>
       }
 
       @if (selected === 'monitor') {
         <app-public-monitor></app-public-monitor>
         <div class="flex justify-end mt-3">
-          <button mat-raised-button class="!bg-slate-500 !text-white" (click)="selected = ''">Voltar</button>
+          <button mat-raised-button class="!bg-slate-500 !text-white" (click)="selected = ''; selectedChange.emit('')">Voltar</button>
         </div>
       }
 
       @if (selected === 'fila_medica') {
         <app-medical-queue></app-medical-queue>
         <div class="flex justify-end mt-3">
-          <button mat-raised-button class="!bg-slate-500 !text-white" (click)="selected = ''">Voltar</button>
+          <button mat-raised-button class="!bg-slate-500 !text-white" (click)="selected = ''; selectedChange.emit('')">Voltar</button>
         </div>
       }
     </section>
   `,
 })
 export class ServiceMenuComponent {
-  selected: '' | 'cadastro' | 'pre_consulta' | 'monitor' | 'fila_medica' = '';
+  @Input() selected: '' | 'cadastro' | 'pre_consulta' | 'monitor' | 'fila_medica' = '';
+  @Output() selectedChange = new EventEmitter<'' | 'cadastro' | 'pre_consulta' | 'monitor' | 'fila_medica'>();
   constructor(private readonly auth: AuthService) {}
 
   isEnfermagem() { return this.auth.user()?.tipo === 'ENFERMEIRO' || this.auth.user()?.tipo === 'TECNICO_ENFERMAGEM'; }
   isMedico() { return this.auth.user()?.tipo === 'MEDICO'; }
 
   onNavigate(target: 'normal'|'retirada'|'consultoria'|'prioritario'|'pre_consulta'|'monitor'|'fila_medica') {
-    if (target === 'normal' || target === 'prioritario') { this.selected = 'cadastro'; return; }
-    if (target === 'pre_consulta' || target === 'monitor' || target === 'fila_medica') { this.selected = target; return; }
+    if (target === 'normal' || target === 'prioritario') { this.selected = 'cadastro'; this.selectedChange.emit(this.selected); return; }
+    if (target === 'pre_consulta' || target === 'monitor' || target === 'fila_medica') { this.selected = target; this.selectedChange.emit(this.selected); return; }
     console.log('Navegar para:', target);
     alert('Funcionalidade em preparação: ' + target);
   }

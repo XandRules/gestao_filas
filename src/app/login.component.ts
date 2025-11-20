@@ -36,9 +36,9 @@ export class LoginComponent {
 
   constructor(private readonly auth: AuthService) {}
 
-  login() {
+  async login() {
     this.error = '';
-    const res = this.auth.login({ nome: this.username, senha: this.password });
+    const res = await this.auth.login({ nome: this.username, senha: this.password });
     if (!res) {
       this.error = 'Credenciais inválidas';
       return;

@@ -14,6 +14,7 @@ export interface HealthUnit {
 }
 
 export interface User extends Credentials {
+  id?: number;
   tipo: ProfessionalType;
   role: UserRole;
   unidadeId?: string;
@@ -25,6 +26,7 @@ export class AuthService {
   private readonly currentKey = 'bemAtendeCurrentUser';
   private readonly usersKey = 'bemAtendeUsers';
   private readonly unitsKey = 'bemAtendeUnits';
+  private readonly baseUrl = 'http://localhost:4303';
 
   readonly user = signal<User | null>(null);
   readonly users = signal<User[]>([]);
@@ -43,41 +45,36 @@ export class AuthService {
     return unit.id;
   }
 
-  register(newUser: { nomeCompleto?: string; nome: string; senha: string; tipo: ProfessionalType; unidadeId?: string }): { ok: boolean; message?: string } {
+  async register(newUser: { nomeCompleto?: string; nome: string; senha: string; tipo: ProfessionalType; unidadeId?: string }): Promise<{ ok: boolean; message?: string }> {
     const { nomeCompleto, nome, senha, tipo, unidadeId } = newUser;
     if (!nome?.trim() || !senha?.trim() || !tipo) {
       return { ok: false, message: 'Dados inválidos.' };
     }
-    const exists = this.users().some(u => u.nome.toLowerCase() === nome.toLowerCase());
-    if (exists) {
-      return { ok: false, message: 'Nome de usuário já cadastrado.' };
+    try {
+      const payload = { username: nome, password: senha, role: this.mapRoleFromTipo(tipo), name: nomeCompleto || nome, tipo, unidadeId: unidadeId ?? this.getDefaultUnitId() };
+      const res = await fetch(`${this.baseUrl}/users`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const created = await res.json();
+      const user: User = { id: created?.id, nome, senha: '', tipo, role: this.mapRole(created?.role), unidadeId: created?.unidadeId, nomeCompleto: created?.name };
+      this.users.set([...this.users(), user]);
+      this.persistUsers();
+      return { ok: true };
+    } catch {
+      return { ok: false, message: 'Erro ao cadastrar.' };
     }
-    const user: User = { nome, senha, tipo, role: 'USER', unidadeId: unidadeId ?? this.getDefaultUnitId(), nomeCompleto };
-    const next = [...this.users(), user];
-    this.users.set(next);
-    this.persistUsers();
-    return { ok: true };
   }
 
-  login({ nome, senha }: Credentials): boolean {
-    if (!nome?.trim() || !senha?.trim()) {
-      return false;
-    }
-    const found = this.users().find(u => u.nome === nome && u.senha === senha);
-    if (!found) {
-      return false;
-    }
-    let target = found;
-    if (!target.unidadeId) {
-      const unitId = this.getDefaultUnitId();
-      target = { ...target, unidadeId: unitId };
-      const updatedUsers = this.users().map(u => u.nome === target.nome ? target : u);
-      this.users.set(updatedUsers);
-      this.persistUsers();
-    }
-    this.user.set(target);
-    this.persistCurrent();
-    return true;
+  async login({ nome, senha }: Credentials): Promise<boolean> {
+    if (!nome?.trim() || !senha?.trim()) { return false; }
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: nome, password: senha }) });
+      if (!res.ok) return false;
+      const data = await res.json();
+      const uRaw = data?.user || {};
+      const target: User = { id: uRaw.id, nome: uRaw.username || nome, senha: '', tipo: this.mapTipoFromRole(uRaw.role), role: this.mapRole(uRaw.role), unidadeId: uRaw.unidadeId ?? this.getDefaultUnitId(), nomeCompleto: uRaw.name };
+      this.user.set(target);
+      this.persistCurrent();
+      return true;
+    } catch { return false; }
   }
 
   logout(): void {
@@ -181,10 +178,32 @@ export class AuthService {
     this.users.set(next);
     this.persistUsers();
 
+    // Atualiza backend se houver id
+    const id = updated.id;
+    if (id) {
+      fetch(`${this.baseUrl}/users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ unidadeId }) }).catch(() => {});
+    }
+
     if (this.user()?.nome === nome) {
       this.user.set(updated);
       this.persistCurrent();
     }
     return { ok: true };
+  }
+
+  private mapRole(r: any): UserRole { return r === 'admin' ? 'ADMIN' : 'USER'; }
+  private mapTipoFromRole(r: any): ProfessionalType {
+    switch (r) {
+      case 'doctor': return 'MEDICO';
+      case 'nurse': return 'ENFERMEIRO';
+      default: return 'ATENDENTE';
+    }
+  }
+  private mapRoleFromTipo(t: ProfessionalType): string {
+    switch (t) {
+      case 'MEDICO': return 'doctor';
+      case 'ENFERMEIRO': return 'nurse';
+      default: return 'staff';
+    }
   }
 }

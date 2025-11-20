@@ -67,34 +67,35 @@ import { ServiceMenuComponent } from './service-menu.component';
           </section>
          }
           @if (isLoggedIn()) {
-            <mat-card class="smart-card max-w-4xl mx-auto mt-4">
-              <mat-card-header>
-                <mat-card-title class="text-emerald-700">Dashboard</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <p>Logado como: <strong>{{ user()?.nome }}</strong></p>
-                <p>Papel: <strong>{{ user()?.role }}</strong></p>
-                @if (user()?.unidadeId) {
-                  <p>Unidade: <strong>{{ unidadeNome(user()?.unidadeId) }}</strong></p>
-                }
+            <section class="max-w-6xl mx-auto mt-6">
+              <h2 class="text-emerald-700 text-2xl font-semibold">Dashboard</h2>
 
-                @if (isAdmin()) {
-                  <section class="mt-6">
-                    <h3 class="mb-2 text-emerald-700 font-medium">Gestão de Unidades (ADMIN)</h3>
-                    <app-health-units></app-health-units>
-
-                    <h3 class="mt-6 mb-2 text-emerald-700 font-medium">Gestão de Usuários (ADMIN)</h3>
-                    <app-user-management></app-user-management>
-                  </section>
+              <div class="mt-2">
+                @if (serviceSelected !== 'cadastro') {
+                  <p>Logado como: <strong>{{ user()?.nome }}</strong></p>
+                  <p>Papel: <strong>{{ user()?.role }}</strong></p>
+                  @if (user()?.unidadeId) {
+                    <p>Unidade: <strong>{{ unidadeNome(user()?.unidadeId) }}</strong></p>
+                  }
                 }
+              </div>
 
-                @if (!isAdmin()) {
-                  <section class="mt-6">
-                    <app-service-menu></app-service-menu>
-                  </section>
-                }
-              </mat-card-content>
-            </mat-card>
+              @if (isAdmin()) {
+                <section class="mt-6">
+                  <h3 class="mb-2 text-emerald-700 font-medium">Gestão de Unidades (ADMIN)</h3>
+                  <app-health-units></app-health-units>
+
+                  <h3 class="mt-6 mb-2 text-emerald-700 font-medium">Gestão de Usuários (ADMIN)</h3>
+                  <app-user-management></app-user-management>
+                </section>
+              }
+
+              @if (!isAdmin()) {
+                <section class="mt-6">
+                  <app-service-menu [selected]="serviceSelected" (selectedChange)="serviceSelected = $event"></app-service-menu>
+                </section>
+              }
+            </section>
           }
       </main>
     </div>
@@ -114,4 +115,5 @@ export class AppShellComponent {
     return u ? u.nome : '';
   }
   selectedForm: 'login' | 'register' = 'login';
+  serviceSelected: '' | 'cadastro' | 'pre_consulta' | 'monitor' | 'fila_medica' = '';
 }

@@ -14,17 +14,18 @@ function readJson(file) {
   return JSON.parse(fs.readFileSync(full, 'utf-8'));
 }
 
-// Agregar múltiplos arquivos de dados
+// Agregar múltiplos arquivos de dados (exceto usuários, que terão router dedicado)
 const db = {
   // dados do monitor permanecem em db.json
   ...readJson('db.json'),
   // dados por funcionalidade
-  ...readJson('user.json'),
   ...readJson('paciente.json'),
   ...readJson('fila.json'),
 };
 
 const router = jsonServer.router(db);
+// Router dedicado para persistir usuários diretamente em user.json
+const userRouter = jsonServer.router(path.join(__dirname, 'user.json'));
 
 // Reescritas de rotas amigáveis
 server.use(jsonServer.rewriter({
@@ -61,7 +62,7 @@ server.patch('/users/:id', (req, res, next) => {
 // Endpoint de login com bcrypt
 server.post('/auth/login', (req, res) => {
   const { username, password } = req.body || {};
-  const user = router.db.get('users').find({ username }).value();
+  const user = userRouter.db.get('users').find({ username }).value();
   if (user && typeof user.passwordHash === 'string') {
     const ok = bcrypt.compareSync(password || '', user.passwordHash);
     if (ok) {
@@ -72,6 +73,8 @@ server.post('/auth/login', (req, res) => {
   return res.status(401).json({ ok: false, message: 'Credenciais inválidas' });
 });
 
+// Router de usuários montado antes do router geral, garantindo persistência em disco
+server.use('/users', userRouter);
 server.use(router);
 
 const PORT = process.env.PORT || 4303;
