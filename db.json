@@ -1,0 +1,57 @@
+{
+  "monitorCurrent": [
+    {
+      "id": 1,
+      "nome": "João Silva",
+      "classificacao": "normal",
+      "fila": "Atendimento Normal",
+      "profissional": "Enfermeira Ana",
+      "senha": "N015",
+      "mesa": "Guichê 2",
+      "local": "Sala 3",
+      "calledAt": 1731900000000
+    }
+  ],
+  "monitorHistory": [
+    {
+      "id": 1,
+      "fila": "Atendimento Normal",
+      "senha": "N012",
+      "mesa": "Guichê 1",
+      "local": "Sala 1",
+      "chamadoEm": 1731899800000
+    },
+    {
+      "id": 2,
+      "fila": "Atendimento Preferencial",
+      "senha": "P003",
+      "mesa": "Guichê 2",
+      "local": "Sala 3",
+      "chamadoEm": 1731899700000
+    },
+    {
+      "id": 3,
+      "fila": "Pré-consulta",
+      "senha": "PR010",
+      "mesa": "Balcão 1",
+      "local": "Triagem",
+      "chamadoEm": 1731899600000
+    }
+  ],
+  "patients": [
+    {
+      "id": 1,
+      "name": "João Silva",
+      "cpf": "123.456.789-00",
+      "birthDate": "1985-04-12",
+      "motherName": "Maria Silva"
+    },
+    {
+      "id": 2,
+      "name": "Ana Souza",
+      "cpf": "987.654.321-00",
+      "birthDate": "1992-11-23",
+      "motherName": "Carla Souza"
+    }
+  ]
+}

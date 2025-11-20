@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/json-server@beta/schema.json",
+  "routes": {
+    "/monitor/current": "/monitorCurrent/1",
+    "/monitor/history": "/monitorHistory",
+    "/patients": "/patients"
+  }
+}

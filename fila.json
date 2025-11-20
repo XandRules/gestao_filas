@@ -1,0 +1,7 @@
+{
+  "queues": [
+    { "id": 1, "name": "Atendimento Normal", "codePrefix": "N" },
+    { "id": 2, "name": "Atendimento Preferencial", "codePrefix": "P" },
+    { "id": 3, "name": "Pré-consulta", "codePrefix": "PR" }
+  ]
+}

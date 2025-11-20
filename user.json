@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "role": "admin",
+      "name": "Administrador",
+      "passwordHash": "$2b$10$Zj/LQmWvubhoRmMwsplPlOvslyXn3/bQWG9zdy4xpDDjuef4KbYn6"
+    },
+    {
+      "id": 2,
+      "username": "atendente",
+      "role": "staff",
+      "name": "Atendente",
+      "passwordHash": "$2b$10$nQsuGLcycbbKcNpdhySWIOKWGqf5ygWUO9VaxRQ988LOWd5fi5j4."
+    },
+    {
+      "id": 3,
+      "username": "medico",
+      "role": "doctor",
+      "name": "Dr. Paulo",
+      "passwordHash": "$2b$10$uAFwGJP5qP6idlqDjrlLCOgzbbNJ8HT6L1Ek/n6BX3/5qdPy6OD3y"
+    },
+    {
+      "id": 4,
+      "username": "enfermeira",
+      "role": "nurse",
+      "name": "Enfermeira Ana",
+      "passwordHash": "$2b$10$E7yahOak0EDamn6FELglIu9DmE1h5p5b7VSKfEZ2nq1GCLM.nyesy"
+    }
+  ]
+}

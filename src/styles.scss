@@ -1,0 +1,103 @@
+
+/* Global styles (sem Sass do Angular Material) */
+
+:root {
+  --app-accent: #059669; /* emerald-600 */
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: #f4f7fb; /* light base */
+  color: #1f2937; /* gray-800 */
+}
+
+/* Header acento consistente */
+.mat-toolbar {
+  background-color: var(--app-accent);
+  color: #fff;
+}
+
+/* Acabamento dos cartões */
+.mat-card { border-radius: 0.75rem; }
+
+/* Container central padrão */
+.container { max-width: 1120px; margin: 0 auto; padding: 1rem; }
+
+/* Campos ocupam largura total por padrão */
+.mat-form-field { width: 100%; }
+
+/* Empilhamento padrão de inputs com gap de 10px */
+.form-stack { display: flex; flex-direction: column; gap: 10px; }
+
+/* Smart Home theme - LIGHT */
+.app-smart-root {
+  min-height: 100vh;
+  background: none; /* remove fundo escuro */
+  color: #1f2937; /* texto padrão escuro */
+}
+
+.smart-toolbar-inner { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.smart-brand { display: flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: 0.5px; }
+.smart-subtitle { color: #4b5563; }
+
+/* Card clara */
+.smart-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  color: #1f2937;
+  max-width: 980px; margin: 1rem auto; padding: 1rem 1.25rem;
+}
+.smart-card--narrow { max-width: 600px; }
+
+/* Ajustes dos campos Material (filled) no tema claro */
+.smart-card .mat-mdc-form-field {
+  --mdc-filled-text-field-container-color: #f6f7fb;
+  --mdc-filled-text-field-hover-state-layer-color: #eef1f6;
+  --mdc-filled-text-field-focus-active-indicator-color: var(--app-accent);
+  --mdc-filled-text-field-active-indicator-color: var(--app-accent);
+  --mdc-filled-text-field-input-text-color: #1f2937;
+  --mdc-filled-text-field-label-text-color: #6b7280;
+}
+.smart-card .mat-mdc-form-field-label { color: #6b7280 !important; }
+.smart-card .mat-mdc-input-element { color: #1f2937; }
+
+/* Botão primário com acento do app */
+.smart-card .mat-mdc-raised-button.mat-primary {
+  --mdc-protected-button-container-color: var(--app-accent);
+  --mdc-protected-button-label-text-color: #fff;
+}
+
+/* Toggle pill claro */
+.smart-toggle { border-radius: 9999px; padding: 0; background: transparent; border: none; }
+.smart-toggle.mat-button-toggle-group { border: none !important; background: transparent !important; }
+.smart-toggle .mat-button-toggle { border-radius: 9999px; margin: 0 2px; color: #1f2937; border: none; }
+.smart-toggle .mat-button-toggle + .mat-button-toggle { border-left: none; }
+.smart-toggle .mat-button-toggle-checked { background-color: var(--app-accent); color: #fff; }
+
+.service-menu { max-width: 900px; margin: 1.5rem auto; display: flex; flex-direction: column; gap: 12px; }
+.service-menu__title { text-align: center; font-size: 1.75rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem; }
+.service-btn {
+  height: 64px;
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  border-radius: 10px;
+  justify-content: center;
+  background: linear-gradient(180deg, #2b6cb0 0%, #2563eb 50%, #1e40af 100%);
+  color: #fff !important;
+}
+/* Assegura que o estilo prevaleça nos botões do Angular Material */
+.mat-mdc-raised-button.service-btn {
+  --mdc-filled-button-container-color: transparent;
+  --mdc-protected-button-container-color: transparent;
+  --mdc-filled-button-label-text-color: #fff;
+  --mdc-protected-button-label-text-color: #fff;
+  background: linear-gradient(180deg, #2b6cb0 0%, #2563eb 50%, #1e40af 100%) !important;
+  color: #fff !important;
+}
+.service-btn:hover { filter: brightness(1.05); }
+.service-btn__icon { display: inline-flex; align-items: center; margin-right: 8px; }
